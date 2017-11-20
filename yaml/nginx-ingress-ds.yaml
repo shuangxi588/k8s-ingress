@@ -1,0 +1,134 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ingress
+rules:
+- apiGroups:
+  - ""
+  - "extensions"
+  resources:
+  - configmaps
+  - secrets
+  - services
+  - endpoints
+  - ingresses
+  - nodes
+  - pods
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
+  - "extensions"
+  resources:
+  - ingresses
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - events
+  - services
+  verbs:
+  - create
+  - list
+  - update
+  - get
+- apiGroups:
+  - "extensions"
+  resources:
+  - ingresses/status
+  - ingresses
+  verbs:
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: ingress-ns
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - get
+  - create
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: ingress-ns-binding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ingress-ns
+subjects:
+  - kind: ServiceAccount
+    name: ingress
+    namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ingress-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ingress
+subjects:
+  - kind: ServiceAccount
+    name: ingress
+    namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ingress
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: nginx-ingress-controller
+spec:
+  template:
+    metadata:
+      labels:
+        name: nginx-ingress-controller
+    spec:
+      # nodeSelector:
+      #   role: nginx-ingress
+      hostNetwork: true
+      serviceAccountName: ingress
+      containers:
+      - image: registry.aegonthtf.com/template-dev/nginx-ingress:1.0.1
+        imagePullPolicy: Always
+        name: nginx-ingress
+        ports:
+        - containerPort: 80
+          hostPort: 80
+        - containerPort: 443
+          hostPort: 443
+        # Uncomment the lines below to enable extensive logging and/or customization of
+        # NGINX configuration with configmaps
+        args:
+         - -v=3
+         - -nginx-configmaps=default/nginx-config
+         - -default-server-tls-secret=default/ingress-server-secret
