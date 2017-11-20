@@ -1,15 +1,10 @@
----
-layout: "post"
-title: "nginx-ingress"
-date: "2017-11-20 15:26"
----
 # Nginx ingress安装配置
 
 ### What is Ingress?
 Typically, services and pods have IPs only routable by the cluster network. All traffic that ends up at an edge router is either dropped or forwarded elsewhere. Conceptually, this might look like:
-![](assets/markdown-img-paste-20171120152835189.png)
+![](images/ingress1.png)
 An Ingress is a collection of rules that allow inbound connections to reach the cluster services.
-![](assets/markdown-img-paste-20171120152857526.png)
+![](images/ingress2.png)
 It can be configured to give services externally-reachable URLs, load balance traffic, terminate SSL, offer name based virtual hosting, and more. Users request ingress by POSTing the Ingress resource to the API server. An Ingress controller is responsible for fulfilling the Ingress, usually with a loadbalancer, though it may also configure your edge router or additional frontends to help handle the traffic in an HA manner.
 
 ## 创建自定义ingress镜像
@@ -65,6 +60,7 @@ coffee-rc-nw6fg                  1/1       Running   0          3d        10.36.
 ```
 
 ## 测试应用
-访问http://cafe.aegonthtf.com/coffee会自动跳转到https
 
+访问http://cafe.aegonthtf.com/coffee会自动跳转到https
+![](images/test.gif)
 
